@@ -68,7 +68,7 @@ generate_answer()   → Pass context + question to Groq LLM → Return answer
 During development we first used **TinyLlama** running locally. It worked but had two problems:
 
 - Inference on CPU was very slow (30-60 seconds per query)
-- Small models don't follow prompt instructions reliably — our "say I don't know if answer isn't in context" instruction was often ignored
+- Small models don't follow prompt instructions reliably, our "say I don't know if answer isn't in context" instruction was often ignored
 
 We then switched to the **Groq API** which runs LLaMA 3.3 70B on their hardware. The result:
 
@@ -85,7 +85,7 @@ Fine-tuning and RAG serve different purposes:
 - **Fine-tuning** teaches the model new behavior or style
 - **RAG** gives the model access to specific documents at query time
 
-For a document Q&A system RAG is the right tool. Fine-tuning would require retraining every time documents change — impractical and expensive. RAG handles new documents instantly by just re-indexing them.
+For a document Q&A system RAG is the right tool. Fine-tuning would require retraining every time documents change which is impractical and expensive. RAG handles new documents instantly by just re-indexing them.
 
 ---
 
@@ -201,7 +201,6 @@ This project was built by [Hmad Afzal](https://github.com/HmadAfzal/) as a perso
  Planned improvements:
 
 - [ ] IndexIVFFlat for faster search on large document sets
-- [ ] Multi-document support
 - [ ] Dynamic k selection based on question type
 - [ ] Evaluation dashboard
 
