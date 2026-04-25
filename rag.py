@@ -86,11 +86,14 @@ Question: {question}</s>
     return answer
 
 
-def rag_pipeline(pdf_path, question, k=3):
+def process_pdf(pdf_path):
     text = load_pdf(pdf_path)
     chunks = chunk_text(text)
     embeddings = embed_chunks(chunks)
     index = build_index(embeddings)
-    D,I = FindIndex(index, question, k)
+    return chunks, index
+
+def query_pdf(chunks, index, question, k=3):
+    D, I = FindIndex(index, question, k)
     answer = generate_answer(question, chunks, I)
     return answer
