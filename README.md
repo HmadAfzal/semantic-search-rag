@@ -209,7 +209,7 @@ This project was built by [Hmad Afzal](https://github.com/HmadAfzal/) as a perso
 
 ## External Resources
 
-**Demo:** [huggingface.co/spaces/llhax/sementic-search-rag](https://huggingface.co/spaces/llhax/sementic-search-rag)
-**LinkedIn Post:** [View Post](https://www.linkedin.com/posts/hmad-afzal_i-built-a-full-rag-pipeline-for-question-share-7453763892867940352-ViNb?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEdOn90Bny24D7Zh9y99ozKwcNNRSVapdws)
-**Email:** hmadafzal00@gmail.com
+**Demo:** [huggingface.co/spaces/llhax/sementic-search-rag](https://huggingface.co/spaces/llhax/sementic-search-rag)<br>
+**LinkedIn Post:** [View Post](https://www.linkedin.com/posts/hmad-afzal_i-built-a-full-rag-pipeline-for-question-share-7453763892867940352-ViNb?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEdOn90Bny24D7Zh9y99ozKwcNNRSVapdws)<br>
+**Email:** hmadafzal00@gmail.com<br>
 **Instagram:** [@llha.x](https://www.instagram.com/llha.x)
