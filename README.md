@@ -1,6 +1,6 @@
 # Semantic RAG Search 
 
-![Header](assets/header.webp)
+<img src="assets/header.webp" alt="Header" width="100%">
 
 A production-ready RAG (Retrieval Augmented Generation) pipeline that lets you upload any PDF and ask questions about its content using semantic search and a large language model.
 
