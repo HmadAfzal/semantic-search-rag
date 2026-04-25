@@ -47,6 +47,20 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+.copy-btn {
+    align-self: flex-start;
+    font-size: 11px;
+    padding: 3px 8px;
+    border: 1px solid #d0d0d0;
+    border-radius: 4px;
+    background: #fff;
+    cursor: pointer;
+    color: #666;
+    margin-top: -6px;
+}
+.copy-btn:hover {
+    background: #f5f5f5;
+}
   </style>
 </head>
 <body>
@@ -165,9 +179,31 @@ function addMessage(text, type) {
     msg.className = `message ${type}`;
     msg.textContent = text;
     chatArea.appendChild(msg);
+    if (type === 'assistant') {
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+        </svg>`;
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(text);
+            copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>`;
+            setTimeout(() => {
+                copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>`;
+            }, 2000);
+        };
+        chatArea.appendChild(copyBtn);
+    }
     chatArea.scrollTop = chatArea.scrollHeight;
     return msg;
 }
+
 function loadHistory() {
     const history = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
     history.forEach(msg => {
