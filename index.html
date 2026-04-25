@@ -5,74 +5,310 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF Question Answering</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #111; min-height: 100vh; padding: 2rem 1rem; }
-    .container { max-width: 700px; margin: 0 auto; }
-    h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
-    .subtitle { font-size: 13px; color: #666; margin-bottom: 1.5rem; }
-    .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-    .section-label { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
-    .upload-area { border: 1.5px dashed #ccc; border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; transition: background 0.15s; }
-    .upload-area:hover { background: #f9f9f9; }
-    .upload-text { font-size: 13px; color: #666; }
-    .upload-text span { color: #2563eb; cursor: pointer; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f0f;
+      --bg-card: #1a1a1a;
+      --bg-hover: #222222;
+      --border: rgba(255,255,255,0.08);
+      --border-focus: rgba(255,255,255,0.2);
+      --text-primary: #e8e8e8;
+      --text-secondary: #888;
+      --text-muted: #555;
+      --accent: #e8e8e8;
+      --user-bg: #1e2a3a;
+      --user-text: #93b8e8;
+      --assistant-bg: #1a1a1a;
+      --error-bg: #2a1515;
+      --error-text: #e87070;
+      --error-border: rgba(232,112,112,0.2);
+      --success-bg: #0f1f15;
+      --success-text: #6bbf8a;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2.5rem 1rem;
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 660px; margin: 0 auto; }
+
+    .header { margin-bottom: 2rem; }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    .header p { font-size: 13px; color: var(--text-secondary); }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .upload-area {
+      border: 1px dashed rgba(255,255,255,0.1);
+      border-radius: var(--radius-sm);
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-area:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.02);
+    }
+    .upload-icon { margin-bottom: 8px; opacity: 0.3; }
+    .upload-text { font-size: 13px; color: var(--text-secondary); }
+    .upload-text span { color: var(--text-primary); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
     #file-input { display: none; }
-    .file-status { display: none; align-items: center; gap: 8px; padding: 8px 12px; background: #f0fdf4; border-radius: 8px; margin-top: 10px; }
+
+    .file-status {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--success-bg);
+      border-radius: var(--radius-sm);
+      margin-top: 10px;
+      border: 1px solid rgba(107,191,138,0.15);
+    }
     .file-status.show { display: flex; }
-    .file-status span { font-size: 13px; color: #16a34a; }
-    .upload-btn { width: 100%; margin-top: 10px; padding: 9px; font-size: 13px; font-weight: 500; background: #fff; border: 1px solid #d0d0d0; border-radius: 8px; cursor: pointer; color: #111; transition: background 0.15s; }
-    .upload-btn:hover { background: #f5f5f5; }
-    .upload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    /* CHANGE 1: PDF selector dropdown styles */
+    .file-status span { font-size: 13px; color: var(--success-text); }
+
+    .upload-btn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 9px;
+      font-size: 13px;
+      font-weight: 500;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-primary);
+      transition: background 0.15s, border-color 0.15s;
+      font-family: inherit;
+    }
+    .upload-btn:hover { background: var(--bg-hover); border-color: var(--border-focus); }
+    .upload-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
     .pdf-selector { display: none; margin-top: 10px; }
-    .pdf-selector label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
-    .pdf-selector select { width: 100%; padding: 8px; border: 1px solid #d0d0d0; border-radius: 8px; font-size: 13px; background: #fff; color: #111; outline: none; cursor: pointer; }
-    .chat-area { min-height: 200px; max-height: 360px; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
-    .message { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
-    .message.user { align-self: flex-end; background: #dbeafe; color: #1e3a8a; border-bottom-right-radius: 3px; }
-    .message.assistant { align-self: flex-start; background: #f3f4f6; color: #111; border-bottom-left-radius: 3px; }
-    .message.loading { opacity: 0.6; font-style: italic; }
-    .message.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .pdf-selector label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+    .pdf-selector select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s;
+    }
+    .pdf-selector select:focus { border-color: var(--border-focus); }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .clear-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-family: inherit;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .clear-btn:hover { color: var(--text-secondary); border-color: var(--border-focus); }
+
+    .chat-area {
+      min-height: 200px;
+      max-height: 380px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    .chat-area::-webkit-scrollbar { width: 4px; }
+    .chat-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 0;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .message {
+      max-width: 82%;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      line-height: 1.65;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: var(--user-bg);
+      color: var(--user-text);
+      border-bottom-right-radius: 4px;
+    }
+    .message.assistant {
+      align-self: flex-start;
+      background: var(--assistant-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+    .message.loading {
+      opacity: 0.5;
+      font-style: italic;
+      color: var(--text-secondary);
+    }
+    .message.error {
+      align-self: flex-start;
+      background: var(--error-bg);
+      color: var(--error-text);
+      border: 1px solid var(--error-border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .copy-btn {
+      align-self: flex-start;
+      padding: 3px 6px;
+      border: none;
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      color: var(--text-muted);
+      margin-top: -4px;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+    .copy-btn:hover { opacity: 1; background: rgba(255,255,255,0.05); }
+
     .input-row { display: flex; gap: 8px; align-items: flex-end; }
-    .input-row textarea { flex: 1; resize: none; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #d0d0d0; background: #fff; color: #111; font-family: inherit; min-height: 42px; max-height: 100px; outline: none; }
-    .input-row textarea:focus { border-color: #999; }
-    .send-btn { padding: 10px 18px; font-size: 13px; font-weight: 500; border-radius: 8px; border: 1px solid #d0d0d0; background: #fff; color: #111; cursor: pointer; transition: background 0.15s; }
-    .send-btn:hover { background: #f5f5f5; }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .empty-state { text-align: center; padding: 2rem 0; color: #aaa; font-size: 13px; }
-    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #ccc; border-top-color: #333; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    .input-row textarea {
+      flex: 1;
+      resize: none;
+      font-size: 13.5px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: inherit;
+      min-height: 42px;
+      max-height: 120px;
+      outline: none;
+      line-height: 1.5;
+      transition: border-color 0.15s;
+    }
+    .input-row textarea:focus { border-color: var(--border-focus); }
+    .input-row textarea::placeholder { color: var(--text-muted); }
+    .input-row textarea:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .send-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .send-btn:hover { background: var(--bg-hover); border-color: var(--border-focus); }
+    .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .spinner {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-top-color: var(--text-primary);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .copy-btn { align-self: flex-start; font-size: 11px; padding: 3px 8px; border: none; border-radius: 4px; background: transparent; cursor: pointer; color: #666; margin-top: -6px; opacity: 0.5; }
-    .copy-btn:hover { opacity: 1; background: #f0f0f0; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>PDF question answering</h1>
-    <p class="subtitle">Upload a PDF and ask questions about its content</p>
+    <div class="header">
+      <h1>PDF question answering</h1>
+      <p>Upload a PDF and ask questions about its content</p>
+    </div>
 
     <div class="card">
       <div class="section-label">1. Upload PDF</div>
       <div class="upload-area" onclick="document.getElementById('file-input').click()">
+        <div class="upload-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <polyline points="9 15 12 12 15 15"/>
+          </svg>
+        </div>
         <p class="upload-text">Drop your PDF here or <span>browse</span></p>
         <input type="file" id="file-input" accept=".pdf" onchange="handleFileSelect(this)">
       </div>
       <div class="file-status" id="file-status">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         <span id="file-name">file.pdf selected</span>
       </div>
       <button class="upload-btn" id="upload-btn" onclick="uploadFile()" disabled>Upload PDF</button>
-
-      <!-- CHANGE 2: PDF dropdown appears after first upload -->
       <div class="pdf-selector" id="pdf-selector">
-        <label>Select PDF to query:</label>
+        <label>Select PDF to query</label>
         <select id="pdf-dropdown"></select>
       </div>
     </div>
 
     <div class="card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div class="chat-header">
         <div class="section-label" style="margin-bottom:0;">2. Ask a question</div>
-        <button onclick="clearChat()" style="font-size:11px; padding:3px 8px; border:1px solid #d0d0d0; border-radius:4px; background:#fff; cursor:pointer; color:#666;">Clear chat</button>
+        <button class="clear-btn" onclick="clearChat()">Clear chat</button>
       </div>
       <div class="chat-area" id="chat-area">
         <div class="empty-state" id="empty-state">Upload a PDF to start asking questions</div>
@@ -108,7 +344,7 @@
       if (!selectedFile) return;
       const btn = document.getElementById('upload-btn');
       btn.disabled = true;
-      btn.innerHTML = '<span class="spinner"></span> Uploading...';
+      btn.innerHTML = '<span class="spinner"></span>Uploading...';
       try {
         const formData = new FormData();
         formData.append('file', selectedFile);
@@ -121,8 +357,6 @@
           document.getElementById('send-btn').disabled = false;
           const emptyState = document.getElementById('empty-state');
           if (emptyState) emptyState.textContent = 'PDF ready. Ask your first question below.';
-
-          // CHANGE 3: Show dropdown and add uploaded PDF as option
           const selector = document.getElementById('pdf-selector');
           const dropdown = document.getElementById('pdf-dropdown');
           selector.style.display = 'block';
@@ -131,17 +365,13 @@
           option.textContent = data.filename;
           dropdown.appendChild(option);
           dropdown.value = data.filename;
-
-          // CHANGE 4: Reset button so user can upload more PDFs
           setTimeout(() => {
             btn.textContent = 'Upload another PDF';
             btn.disabled = false;
-            btn.style.color = '#111';
           }, 2000);
-
         } else {
           btn.textContent = 'Upload failed';
-          btn.style.color = '#dc2626';
+          btn.style.color = '#e87070';
           btn.disabled = false;
         }
       } catch (e) {
@@ -154,31 +384,25 @@
       const input = document.getElementById('question-input');
       const question = input.value.trim();
       if (!question || !pdfUploaded) return;
-
-      // CHANGE 5: Get selected PDF from dropdown and send with request
       const filename = document.getElementById('pdf-dropdown').value;
-
       addMessage(question, 'user');
       input.value = '';
       input.style.height = 'auto';
       document.getElementById('send-btn').disabled = true;
-
       const loadingEl = addMessage('Thinking...', 'assistant loading');
-
       try {
         const res = await fetch(`${API_URL}/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question, filename }) // CHANGE 6: filename included in body
+          body: JSON.stringify({ question, filename })
         });
         const data = await res.json();
         loadingEl.remove();
-        addMessage(res.ok ? data.answer : (data.detail || 'Something went wrong.'), 'assistant');
+        addMessage(res.ok ? data.answer : (data.detail || 'Something went wrong.'), res.ok ? 'assistant' : 'error');
       } catch (e) {
         loadingEl.remove();
-        addMessage('Something went wrong. Please try again.', 'assistant error');
+        addMessage('Something went wrong. Please try again.', 'error');
       }
-
       document.getElementById('send-btn').disabled = false;
     }
 
@@ -198,12 +422,12 @@
       if (type === 'assistant') {
         const copyBtn = document.createElement('button');
         copyBtn.className = 'copy-btn';
-        copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+        copyBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         copyBtn.onclick = () => {
           navigator.clipboard.writeText(text);
-          copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+          copyBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
           setTimeout(() => {
-            copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+            copyBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
           }, 2000);
         };
         chatArea.appendChild(copyBtn);
