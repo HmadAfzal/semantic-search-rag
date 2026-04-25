@@ -24,6 +24,8 @@ def read_root():
 @app.post('/upload')
 async def upload(file: UploadFile = File(...)):
     global uploaded_file
+    if not file.filename.endswith('.pdf'):
+    	raise HTTPException(status_code=400, detail="Only PDFs are supported")
     contents = await file.read()
     with open(file.filename, "wb") as f:
         f.write(contents)
