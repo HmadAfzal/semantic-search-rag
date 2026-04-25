@@ -9,3 +9,4 @@ numpy==2.4.4
 python-multipart==0.0.26
 pydantic==2.13.3
 pydantic_core==2.46.3
+groq==1.2.0
