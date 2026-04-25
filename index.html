@@ -23,11 +23,16 @@
     .upload-btn { width: 100%; margin-top: 10px; padding: 9px; font-size: 13px; font-weight: 500; background: #fff; border: 1px solid #d0d0d0; border-radius: 8px; cursor: pointer; color: #111; transition: background 0.15s; }
     .upload-btn:hover { background: #f5f5f5; }
     .upload-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    /* CHANGE 1: PDF selector dropdown styles */
+    .pdf-selector { display: none; margin-top: 10px; }
+    .pdf-selector label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
+    .pdf-selector select { width: 100%; padding: 8px; border: 1px solid #d0d0d0; border-radius: 8px; font-size: 13px; background: #fff; color: #111; outline: none; cursor: pointer; }
     .chat-area { min-height: 200px; max-height: 360px; overflow-y: auto; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
     .message { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 14px; line-height: 1.6; }
     .message.user { align-self: flex-end; background: #dbeafe; color: #1e3a8a; border-bottom-right-radius: 3px; }
     .message.assistant { align-self: flex-start; background: #f3f4f6; color: #111; border-bottom-left-radius: 3px; }
     .message.loading { opacity: 0.6; font-style: italic; }
+    .message.error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .input-row { display: flex; gap: 8px; align-items: flex-end; }
     .input-row textarea { flex: 1; resize: none; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid #d0d0d0; background: #fff; color: #111; font-family: inherit; min-height: 42px; max-height: 100px; outline: none; }
     .input-row textarea:focus { border-color: #999; }
@@ -35,38 +40,10 @@
     .send-btn:hover { background: #f5f5f5; }
     .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .empty-state { text-align: center; padding: 2rem 0; color: #aaa; font-size: 13px; }
-    .spinner {
-    display: inline-block;
-    width: 12px;
-    height: 12px;
-    border: 2px solid #ccc;
-    border-top-color: #333;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-}
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-.copy-btn {
-    align-self: flex-start;
-    font-size: 11px;
-    padding: 3px 8px;
-    border: 1px solid #d0d0d0;
-    border-radius: 4px;
-    background: #fff;
-    cursor: pointer;
-    color: #666;
-    margin-top: -6px;
-}
-.copy-btn:hover {
-    background: #f5f5f5;
-}
-
-.message.error {
-    background: #fef2f2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
-}
+    .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid #ccc; border-top-color: #333; border-radius: 50%; animation: spin 0.6s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .copy-btn { align-self: flex-start; font-size: 11px; padding: 3px 8px; border: none; border-radius: 4px; background: transparent; cursor: pointer; color: #666; margin-top: -6px; opacity: 0.5; }
+    .copy-btn:hover { opacity: 1; background: #f0f0f0; }
   </style>
 </head>
 <body>
@@ -84,14 +61,20 @@
         <span id="file-name">file.pdf selected</span>
       </div>
       <button class="upload-btn" id="upload-btn" onclick="uploadFile()" disabled>Upload PDF</button>
+
+      <!-- CHANGE 2: PDF dropdown appears after first upload -->
+      <div class="pdf-selector" id="pdf-selector">
+        <label>Select PDF to query:</label>
+        <select id="pdf-dropdown"></select>
+      </div>
     </div>
 
     <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-      <div class="section-label" style="margin-bottom:0;">2. Ask a question</div>
-      <button onclick="clearChat()" style="font-size:11px; padding:3px 8px; border:1px solid #d0d0d0; border-radius:4px; background:#fff; cursor:pointer; color:#666;">Clear chat</button>
-    </div>   
-     <div class="chat-area" id="chat-area">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="section-label" style="margin-bottom:0;">2. Ask a question</div>
+        <button onclick="clearChat()" style="font-size:11px; padding:3px 8px; border:1px solid #d0d0d0; border-radius:4px; background:#fff; cursor:pointer; color:#666;">Clear chat</button>
+      </div>
+      <div class="chat-area" id="chat-area">
         <div class="empty-state" id="empty-state">Upload a PDF to start asking questions</div>
       </div>
       <div class="input-row">
@@ -108,18 +91,18 @@
     let selectedFile = null;
     let pdfUploaded = false;
 
-  function handleFileSelect(input) {
-    selectedFile = input.files[0];
-    if (!selectedFile.name.endsWith('.pdf')) {
+    function handleFileSelect(input) {
+      selectedFile = input.files[0];
+      if (!selectedFile.name.endsWith('.pdf')) {
         alert('Only PDF files are supported');
         input.value = '';
         selectedFile = null;
         return;
+      }
+      document.getElementById('file-name').textContent = selectedFile.name + ' selected';
+      document.getElementById('file-status').classList.add('show');
+      document.getElementById('upload-btn').disabled = false;
     }
-    document.getElementById('file-name').textContent = selectedFile.name + ' selected';
-    document.getElementById('file-status').classList.add('show');
-    document.getElementById('upload-btn').disabled = false;
-}
 
     async function uploadFile() {
       if (!selectedFile) return;
@@ -136,10 +119,30 @@
           pdfUploaded = true;
           document.getElementById('question-input').disabled = false;
           document.getElementById('send-btn').disabled = false;
-          document.getElementById('empty-state').textContent = 'PDF ready. Ask your first question below.';
+          const emptyState = document.getElementById('empty-state');
+          if (emptyState) emptyState.textContent = 'PDF ready. Ask your first question below.';
+
+          // CHANGE 3: Show dropdown and add uploaded PDF as option
+          const selector = document.getElementById('pdf-selector');
+          const dropdown = document.getElementById('pdf-dropdown');
+          selector.style.display = 'block';
+          const option = document.createElement('option');
+          option.value = data.filename;
+          option.textContent = data.filename;
+          dropdown.appendChild(option);
+          dropdown.value = data.filename;
+
+          // CHANGE 4: Reset button so user can upload more PDFs
+          setTimeout(() => {
+            btn.textContent = 'Upload another PDF';
+            btn.disabled = false;
+            btn.style.color = '#111';
+          }, 2000);
+
         } else {
-         btn.textContent = 'Upload failed';
-         btn.style.color = '#dc2626';
+          btn.textContent = 'Upload failed';
+          btn.style.color = '#dc2626';
+          btn.disabled = false;
         }
       } catch (e) {
         btn.textContent = 'Error — is API running?';
@@ -152,6 +155,9 @@
       const question = input.value.trim();
       if (!question || !pdfUploaded) return;
 
+      // CHANGE 5: Get selected PDF from dropdown and send with request
+      const filename = document.getElementById('pdf-dropdown').value;
+
       addMessage(question, 'user');
       input.value = '';
       input.style.height = 'auto';
@@ -163,59 +169,52 @@
         const res = await fetch(`${API_URL}/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question })
+          body: JSON.stringify({ question, filename }) // CHANGE 6: filename included in body
         });
         const data = await res.json();
         loadingEl.remove();
         addMessage(res.ok ? data.answer : (data.detail || 'Something went wrong.'), 'assistant');
       } catch (e) {
         loadingEl.remove();
-       addMessage('Something went wrong. Please try again.', 'assistant error');
+        addMessage('Something went wrong. Please try again.', 'assistant error');
       }
 
       document.getElementById('send-btn').disabled = false;
     }
-function addMessage(text, type) {
-    const chatArea = document.getElementById('chat-area');
-    const emptyState = document.getElementById('empty-state');
-    if (!type.includes('loading')) {
+
+    function addMessage(text, type) {
+      const chatArea = document.getElementById('chat-area');
+      const emptyState = document.getElementById('empty-state');
+      if (!type.includes('loading')) {
         let history = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
         history.push({ text, type });
         sessionStorage.setItem('chatHistory', JSON.stringify(history));
-    }
-    if (emptyState && type === 'user') emptyState.remove();
-    const msg = document.createElement('div');
-    msg.className = `message ${type}`;
-    msg.textContent = text;
-    chatArea.appendChild(msg);
-    if (type === 'assistant') {
+      }
+      if (emptyState && type === 'user') emptyState.remove();
+      const msg = document.createElement('div');
+      msg.className = `message ${type}`;
+      msg.textContent = text;
+      chatArea.appendChild(msg);
+      if (type === 'assistant') {
         const copyBtn = document.createElement('button');
         copyBtn.className = 'copy-btn';
-        copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>`;
+        copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
         copyBtn.onclick = () => {
-            navigator.clipboard.writeText(text);
-            copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>`;
-            setTimeout(() => {
-                copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>`;
-            }, 2000);
+          navigator.clipboard.writeText(text);
+          copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+          setTimeout(() => {
+            copyBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+          }, 2000);
         };
         chatArea.appendChild(copyBtn);
+      }
+      chatArea.scrollTop = chatArea.scrollHeight;
+      return msg;
     }
-    chatArea.scrollTop = chatArea.scrollHeight;
-    return msg;
-}
 
-function loadHistory() {
-    const history = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
-    history.forEach(msg => {
+    function loadHistory() {
+      const history = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
+      history.forEach(msg => {
         const chatArea = document.getElementById('chat-area');
         const emptyState = document.getElementById('empty-state');
         if (emptyState) emptyState.remove();
@@ -223,16 +222,15 @@ function loadHistory() {
         el.className = `message ${msg.type}`;
         el.textContent = msg.text;
         chatArea.appendChild(el);
-    });
-}
-loadHistory();
+      });
+    }
+    loadHistory();
 
-function clearChat() {
-    sessionStorage.removeItem('chatHistory');
-    const chatArea = document.getElementById('chat-area');
-    chatArea.innerHTML = '<div class="empty-state" id="empty-state">Upload a PDF to start asking questions</div>';
-}
-
+    function clearChat() {
+      sessionStorage.removeItem('chatHistory');
+      const chatArea = document.getElementById('chat-area');
+      chatArea.innerHTML = '<div class="empty-state" id="empty-state">Upload a PDF to start asking questions</div>';
+    }
   </script>
 </body>
 </html>
