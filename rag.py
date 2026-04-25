@@ -2,13 +2,14 @@ from pypdf import PdfReader
 import re
 import numpy as np
 import faiss
-from transformers import pipeline
+from groq import Groq
 from sentence_transformers import SentenceTransformer
+import os
+from dotenv import load_dotenv
 
-
+load_dotenv()
 model = SentenceTransformer('all-MiniLM-L6-v2')
-llm = pipeline("text-generation", model="TinyLlama/TinyLlama-1.1B-Chat-v1.0")
-
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 def load_pdf(path):
   reader = PdfReader(path)
@@ -76,9 +77,12 @@ Context:
 
 Question: {question}</s>
 <|assistant|>"""
-
-    output = llm(prompt, max_new_tokens=400, do_sample=False)
-    answer = output[0]['generated_text'].split("<|assistant|>")[-1].strip()
+    response = client.chat.completions.create(
+    model="llama-3.3-70b-versatile",
+    messages=[{"role": "user", "content": prompt}],
+    max_tokens=400
+    )
+    answer = response.choices[0].message.content
     return answer
 
 

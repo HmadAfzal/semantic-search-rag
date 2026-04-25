@@ -14,7 +14,7 @@ app.add_middleware(
 )
 
 class QueryRequest(BaseModel):
-	question:str
+    question: str
 
 @app.post('/upload')
 async def upload(file: UploadFile = File(...)):
@@ -26,12 +26,13 @@ async def upload(file: UploadFile = File(...)):
     return {"filename": file.filename, "message": "PDF uploaded successfully"}
 
 @app.post('/query')
-def query(request:QueryRequest):
-	question=request.question
-	if uploaded_file == None:
-		raise HTTPException(status_code=400, detail="No PDF uploaded yet")
-	try:
-		answer=rag_pipeline(uploaded_file, question)
-		return {"answer": answer}
-	except Exception as e:
-		raise HTTPException(status_code=500, detail="Error in generating answer")
+def query(request: QueryRequest):
+    question = request.question
+    if uploaded_file == None:
+        raise HTTPException(status_code=400, detail="No PDF uploaded yet")
+    try:
+        answer = rag_pipeline(uploaded_file, question)
+        return {"answer": answer}
+    except Exception as e:
+        print(f"ERROR: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
