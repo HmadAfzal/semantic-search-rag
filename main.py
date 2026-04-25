@@ -2,7 +2,8 @@ from rag import rag_pipeline
 from pydantic import BaseModel
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 uploaded_file = None
@@ -15,6 +16,10 @@ app.add_middleware(
 
 class QueryRequest(BaseModel):
     question: str
+
+@app.get("/")
+def read_root():
+    return FileResponse("index.html")
 
 @app.post('/upload')
 async def upload(file: UploadFile = File(...)):
