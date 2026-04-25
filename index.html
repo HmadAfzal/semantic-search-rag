@@ -61,6 +61,12 @@
 .copy-btn:hover {
     background: #f5f5f5;
 }
+
+.message.error {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+}
   </style>
 </head>
 <body>
@@ -81,8 +87,11 @@
     </div>
 
     <div class="card">
-      <div class="section-label">2. Ask a question</div>
-      <div class="chat-area" id="chat-area">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <div class="section-label" style="margin-bottom:0;">2. Ask a question</div>
+      <button onclick="clearChat()" style="font-size:11px; padding:3px 8px; border:1px solid #d0d0d0; border-radius:4px; background:#fff; cursor:pointer; color:#666;">Clear chat</button>
+    </div>   
+     <div class="chat-area" id="chat-area">
         <div class="empty-state" id="empty-state">Upload a PDF to start asking questions</div>
       </div>
       <div class="input-row">
@@ -129,8 +138,8 @@
           document.getElementById('send-btn').disabled = false;
           document.getElementById('empty-state').textContent = 'PDF ready. Ask your first question below.';
         } else {
-          btn.textContent = 'Upload failed';
-          btn.disabled = false;
+         btn.textContent = 'Upload failed';
+         btn.style.color = '#dc2626';
         }
       } catch (e) {
         btn.textContent = 'Error — is API running?';
@@ -161,7 +170,7 @@
         addMessage(res.ok ? data.answer : (data.detail || 'Something went wrong.'), 'assistant');
       } catch (e) {
         loadingEl.remove();
-        addMessage('Could not reach the API. Make sure it is running on localhost:8000.', 'assistant');
+       addMessage('Something went wrong. Please try again.', 'assistant error');
       }
 
       document.getElementById('send-btn').disabled = false;
@@ -217,6 +226,13 @@ function loadHistory() {
     });
 }
 loadHistory();
+
+function clearChat() {
+    sessionStorage.removeItem('chatHistory');
+    const chatArea = document.getElementById('chat-area');
+    chatArea.innerHTML = '<div class="empty-state" id="empty-state">Upload a PDF to start asking questions</div>';
+}
+
   </script>
 </body>
 </html>
